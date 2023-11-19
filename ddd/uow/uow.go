@@ -7,39 +7,39 @@ import (
 	"gorm.io/gorm"
 )
 
-type UOW struct {
+type UnitOfWork struct {
 	db     *gorm.DB
 	tx     *gorm.DB
 	schema string
 }
 
-func (uow *UOW) DB() *gorm.DB {
+func (uow *UnitOfWork) DB() *gorm.DB {
 	return uow.db
 }
 
-func (uow *UOW) New(options ...func(*UOW)) *UOW {
-	uow = &UOW{}
+func (uow *UnitOfWork) New(options ...func(*UnitOfWork)) *UnitOfWork {
+	uow = &UnitOfWork{}
 	for _, option := range options {
 		option(uow)
 	}
 	return uow
 }
 
-func (uow *UOW) AddToTx(entity interface{}) error {
+func (uow *UnitOfWork) AddToTx(entity interface{}) error {
 	if uow.tx == nil {
 		return errors.New("--> Transaction not started")
 	}
 	return uow.tx.Create(entity).Error
 }
 
-func (uow *UOW) BeginTx() {
+func (uow *UnitOfWork) BeginTx() {
 	if uow.schema != "" {
 		uow.SetSchema(uow.schema)
 	}
 	uow.tx = uow.db.Begin()
 }
 
-func (uow *UOW) CommitTx() error {
+func (uow *UnitOfWork) CommitTx() error {
 	if uow.tx == nil {
 		return errors.New("--> Transaction not started - Commit")
 	}
@@ -52,33 +52,34 @@ func (uow *UOW) CommitTx() error {
 	return erro
 }
 
-func (uow *UOW) RollbackTx() error {
+func (uow *UnitOfWork) RollbackTx() error {
 	return uow.tx.Rollback().Error
 }
 
-func (uow *UOW) MigrateDB(entidades ...any) error {
+func (uow *UnitOfWork) MigrateDB(entidades ...any) error {
 	return uow.db.AutoMigrate(entidades...)
 }
 
-func (uow *UOW) ActualSchema() string {
+func (uow *UnitOfWork) ActualSchema() string {
 	sc := ""
-	uow.db.Raw("SELECT current_schema()").Scan(&sc)
+	uow.db.Raw("SELECT current_schema();").Scan(&sc)
 	return sc
 }
 
-func (uow *UOW) SetSchema(schema string) {
+func (uow *UnitOfWork) SetSchema(schema string) {
 	uow.schema = schema
 	uow.db.Exec("SET search_path TO " + schema + ";")
 }
 
-func (uow *UOW) CreateSchema(schema string) error {
+func (uow *UnitOfWork) CreateSchema(schema string) error {
 	return uow.db.Exec("CREATE SCHEMA IF NOT EXISTS " + schema + ";").Error
 }
 
-func (uow *UOW) DropSchema(schema string, cascade bool) error {
+func (uow *UnitOfWork) DropSchema(schema string, cascade bool) error {
 	stmt := "DROP SCHEMA IF EXISTS " + schema
 	if cascade {
-		stmt += " CASCADE" + ";"
+		stmt += " CASCADE"
 	}
+	stmt += ";"
 	return uow.db.Exec(stmt).Error
 }

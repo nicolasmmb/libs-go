@@ -2,9 +2,9 @@ package uow
 
 import "gorm.io/gorm"
 
-type UOWInterface interface {
+type UOW interface {
 	DB() *gorm.DB
-	New(options ...func(*UOW)) *UOW
+	New(options ...func(*UnitOfWork)) *UnitOfWork
 	AddToTx(entity any) error
 	BeginTx()
 	CommitTx() error
