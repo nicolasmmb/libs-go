@@ -2,9 +2,10 @@ package bus
 
 import (
 	"context"
-	"libs/uow"
 	"log"
 	"testing"
+
+	uow "github.com/niko-labs/libs-go/uow"
 )
 
 type cmdEx01 struct{}

@@ -2,8 +2,9 @@ package bus
 
 import (
 	"context"
-	"libs/uow"
 	"reflect"
+
+	uow "github.com/niko-labs/libs-go/uow"
 )
 
 var (

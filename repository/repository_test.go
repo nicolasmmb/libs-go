@@ -1,9 +1,10 @@
 package repository
 
 import (
-	"libs/uow"
 	"reflect"
 	"testing"
+
+	"github.com/niko-labs/libs-go/uow"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"

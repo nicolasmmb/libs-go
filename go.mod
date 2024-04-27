@@ -1,4 +1,4 @@
-module libs
+module github.com/niko-labs/libs-go
 
 go 1.21.6
 

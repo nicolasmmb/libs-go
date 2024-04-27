@@ -1,9 +1,8 @@
 package repository
 
 import (
-	"libs/uow"
-
 	"github.com/jackc/pgx/v5/pgxpool"
+	uow "github.com/niko-labs/libs-go/uow"
 )
 
 type RepositoryBase interface {

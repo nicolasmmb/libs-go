@@ -2,7 +2,7 @@ package bus
 
 import (
 	"context"
-	"libs/uow"
+	uow "github.com/niko-labs/libs-go/uow"
 )
 
 type CommandHandlerFunc func(ctx context.Context, uow *uow.UnitOfWork, cmd CommandHandler) (data any, erro error)
