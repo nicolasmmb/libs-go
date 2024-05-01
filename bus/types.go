@@ -2,6 +2,7 @@ package bus
 
 import (
 	"context"
+
 	uow "github.com/niko-labs/libs-go/uow"
 )
 
@@ -15,7 +16,9 @@ type BusInterface interface {
 	RegisterEventHandler(event EventHandler, handler EventHandlerFunc) error
 	RemoveEventHandler(event EventHandler) error
 
-	SendCommand(command CommandHandler)
+	SendCommand(command CommandHandler) (data any, erro error)
+	SendEvent(event EventHandler)
+	SendEventAsync(ch chan error, event EventHandler)
 }
 
 type CommandHandler interface {
