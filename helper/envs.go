@@ -16,10 +16,10 @@ func LoadEnv() {
 	}
 	dir = dir + "/.env"
 
-	log.Println(" --> Loading .env file from: ", dir)
+	log.Println("--> Loading .env file from: ", dir)
 
 	err = godotenv.Load(dir)
 	if err != nil {
-		log.Println(" --> Error loading .env file")
+		log.Println("--> Error loading .env file")
 	}
 }
