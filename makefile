@@ -10,19 +10,15 @@ trace:
 bench:
 	@echo "Running benchmarks"
 	@echo "=================="
-	@go test -bench=. ./repository -v -count=5 -benchmem
-	@echo "=================="
-	@go test -bench=. ./bus -v -count=5 -benchmem
-	@echo "=================="
-	@go test -bench=. ./uow -v -count=5 -benchmem
-	@echo "=================="
+	@go test -bench=. ./... -v -count=5 -benchmem
 
 test:
 	@echo "Running tests"
 	@echo "=================="
-	@go test -v ./repository
-	@echo "=================="
-	@go test -v ./bus
-	@echo "=================="
-	@go test -v ./uow
-	@echo "=================="
+	@go test -v ./... -p 6 -v
+
+
+coverage:
+	@go test -coverprofile=./.docs/coverage.out ./...
+	@go tool cover -html=./.docs/coverage.out -o ./.docs/coverage.html
+	@open ./.docs/coverage.html

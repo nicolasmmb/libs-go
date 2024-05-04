@@ -22,7 +22,7 @@ func NewRepository[R RepositoryBase](session *pgxpool.Pool, repo R) *Repository[
 	return rp
 }
 func NewRepositoryFromUoW[R RepositoryBase](uow *uow.UnitOfWork, repo R) *Repository[R] {
-	repo.SetDB(uow.Connection)
+	repo.SetDB(uow.GetConnection())
 	rp := &Repository[R]{Queries: repo}
 	return rp
 }

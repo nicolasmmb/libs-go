@@ -1,40 +1,22 @@
 package uow
 
 import (
-	"context"
-	"log"
-
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.opentelemetry.io/otel/trace"
 )
 
-type SchemaId struct{}
-
 type UnitOfWorkInterface interface {
-	SetSchema(schema string)
+	GetSchema() *string
+	SetSchema(schema string) error
+	GetTracer() *trace.Tracer
+	GetConnection() *pgxpool.Pool
+	Begin() *pgxpool.Tx
+	Commit() error
+	Rollback() error
 }
 
-type UowOption func(c *UnitOfWork)
-
-type UnitOfWork struct {
-	Ctx        context.Context
-	Schema     *string
-	Connection *pgxpool.Pool
-}
-
-func WithSchema(schema string) UowOption {
-	return func(c *UnitOfWork) {
-		c.SetSchema(schema)
-	}
-}
-func WithContext(ctx context.Context) UowOption {
-	return func(c *UnitOfWork) {
-		c.Ctx = ctx
-	}
-}
-func WithConnection(cnx *pgxpool.Pool) UowOption {
-	return func(c *UnitOfWork) {
-		c.Connection = cnx
-	}
+func (u *UnitOfWork) GetTracer() *trace.Tracer {
+	return u.tracer
 }
 
 func NewUnitOfWorkWithOptions(opts ...UowOption) *UnitOfWork {
@@ -45,31 +27,74 @@ func NewUnitOfWorkWithOptions(opts ...UowOption) *UnitOfWork {
 	return u
 }
 
-func NewUnitOfWork(cnx *pgxpool.Pool) *UnitOfWork {
-	return &UnitOfWork{
-		Ctx:        context.Background(),
-		Connection: cnx,
+func (u *UnitOfWork) SetSchema(schema string) error {
+	if schema == "" {
+		return ErrorSchemaCannotBeEmpty
 	}
+	if u.schema != nil {
+		return ErrorSchemaAlreadySet
+	}
+	u.schema = &schema
+	return nil
 }
 
-func (u *UnitOfWork) SetSchema(schema string) {
-	if schema == "" {
-		log.Panicln(ErrorOnSetSchema, "Schema cannot be empty: ", schema)
+func (u *UnitOfWork) GetSchema() *string {
+	return u.schema
+}
+
+func (u *UnitOfWork) GetConnection() *pgxpool.Pool {
+	return u.connection
+}
+
+func (u *UnitOfWork) Commit() error {
+	if !u.hasTransaction() {
+		return ErrorTransactionNotSet
 	}
-	if u.Connection == nil {
-		log.Panicln(ErrorOnSetSchema, "Connection is nil")
+	err := u.transaction.Commit(u.Ctx)
+	u.transaction = nil
+	return err
+}
+
+func (u *UnitOfWork) Rollback() error {
+	if !u.hasTransaction() {
+		return ErrorTransactionNotSet
 	}
-	if u.Ctx == nil {
-		u.Ctx = context.Background()
+	err := u.transaction.Rollback(u.Ctx)
+	if err != nil {
+		u.transaction = nil
+		return err
 	}
-	if u.Schema != nil {
-		log.Panicln(ErrorOnSetSchema, "Schema already set: ", *u.Schema)
+	u.transaction = nil
+	return nil
+}
+
+func (u *UnitOfWork) Begin() error {
+	if u.hasTransaction() {
+		return ErrorTransactionNotSet
+	}
+	if !u.hasSchema() {
+		return ErrorSchemaNotSetUEI01
 	}
 
-	u.Schema = &schema
-	_SQL_SET_SCHEMA := "SET search_path TO '" + schema + "';"
-	_, err := u.Connection.Exec(u.Ctx, _SQL_SET_SCHEMA)
+	tx, err := u.connection.Begin(u.Ctx)
 	if err != nil {
-		log.Panicln(ErrorOnSetSchema, err)
+		return err
 	}
+
+	SQL_SET_SCHEMA := "SET search_path TO '" + *u.schema + "';"
+
+	_, err = tx.Exec(u.Ctx, SQL_SET_SCHEMA)
+	if err != nil {
+		return err
+	}
+	u.transaction = tx
+	return nil
+}
+
+func (u *UnitOfWork) hasTransaction() bool {
+	return u.transaction != nil
+}
+
+func (u *UnitOfWork) hasSchema() bool {
+	return u.schema != nil
 }
