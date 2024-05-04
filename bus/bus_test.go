@@ -81,7 +81,7 @@ func TestMain(t *testing.M) {
 func TestBus_CreateBus(t *testing.T) {
 	localBus := createBase()
 	if localBus == nil {
-		t.Error("---> Bus is nil")
+		t.Error("--> Bus is nil")
 	}
 }
 
@@ -96,7 +96,7 @@ func TestBus_RemoveCommandHandler(t *testing.T) {
 	}
 	after := localBus.NumberOfCommandHandlers()
 	if before == after {
-		t.Error("---> The number of command handlers should decrease")
+		t.Error("--> The number of command handlers should decrease")
 	}
 }
 
@@ -107,12 +107,12 @@ func TestBus_RegisterExistingCommandHandler(t *testing.T) {
 	before := localBus.NumberOfCommandHandlers()
 	err := localBus.RegisterCommandHandler(cmdEx01{}, baseCommandHandler01)
 	if err == nil {
-		t.Error("---> If the command handler is already registered, it should return an error")
+		t.Error("--> If the command handler is already registered, it should return an error")
 	}
 	after := localBus.NumberOfCommandHandlers()
 
 	if before != after {
-		t.Error("---> The number of command handlers should not change")
+		t.Error("--> The number of command handlers should not change")
 	}
 }
 
@@ -124,7 +124,7 @@ func TestBus_CountCommandHandlers(t *testing.T) {
 	localBus.RegisterCommandHandler(cmdEx03{}, baseCommandHandler03)
 
 	if localBus.NumberOfCommandHandlers() != 3 {
-		t.Error("---> The number of command handlers should be 3")
+		t.Error("--> The number of command handlers should be 3")
 	}
 }
 
@@ -134,7 +134,7 @@ func TestBus_SendCommandToNonExistingHandler(t *testing.T) {
 
 	_, err := localBus.SendCommand(context.Background(), cmdEx02{}, nil)
 	if err == nil {
-		t.Error("---> The command handler should not be found")
+		t.Error("--> The command handler should not be found")
 	}
 }
 
@@ -144,7 +144,7 @@ func TestBus_SendCommandToExistingHandler(t *testing.T) {
 
 	_, err := localBus.SendCommand(context.Background(), cmdEx01{}, nil)
 	if err != nil {
-		t.Error("---> The command handler should be found")
+		t.Error("--> The command handler should be found")
 	}
 }
 
@@ -218,7 +218,7 @@ func TestBus_RegisterEventHandler(t *testing.T) {
 	}
 	after := localBus.NumberOfEventHandlers()
 	if before == after {
-		t.Error("---> The number of event handlers should increase, not be the same as: ", before)
+		t.Error("--> The number of event handlers should increase, not be the same as: ", before)
 	}
 }
 
@@ -233,7 +233,7 @@ func TestBus_RemoveEventHandler(t *testing.T) {
 	}
 	after := localBus.NumberOfEventHandlers()
 	if before == after {
-		t.Error("---> The number of event handlers should decrease")
+		t.Error("--> The number of event handlers should decrease")
 	}
 }
 
@@ -244,12 +244,12 @@ func TestBus_RegisterExistingEventHandler(t *testing.T) {
 	before := localBus.NumberOfEventHandlers()
 	err := localBus.RegisterEventHandler(eventEx01{}, baseEventHandler01)
 	if err == nil {
-		t.Error("---> If the event handler is already registered, it should return an error")
+		t.Error("--> If the event handler is already registered, it should return an error")
 	}
 	after := localBus.NumberOfEventHandlers()
 
 	if before != after {
-		t.Error("---> The number of event handlers should not change")
+		t.Error("--> The number of event handlers should not change")
 	}
 }
 
@@ -261,7 +261,7 @@ func TestBus_CountEventHandlers(t *testing.T) {
 	localBus.RegisterEventHandler(eventEx03{}, baseEventHandler03)
 
 	if localBus.NumberOfEventHandlers() != 3 {
-		t.Error("---> The number of event handlers should be 3")
+		t.Error("--> The number of event handlers should be 3")
 	}
 }
 
@@ -271,7 +271,7 @@ func TestBus_SendEventToNonExistingHandler(t *testing.T) {
 
 	err := localBus.SendEvent(context.Background(), eventEx02{}, nil)
 	if err == nil {
-		t.Error("---> The event handler should not be found")
+		t.Error("--> The event handler should not be found")
 	}
 }
 
@@ -281,15 +281,15 @@ func TestBus_SendEventToExistingHandler(t *testing.T) {
 
 	err := localBus.SendEvent(context.Background(), eventEx01{}, nil)
 	if err != nil {
-		t.Error("---> The event handler should be found")
+		t.Error("--> The event handler should be found")
 	}
 }
 
 func TestBus_SendEventAsync(t *testing.T) {
 	localBus := createBaseBusMock()
 	localBus.RegisterEventHandler(eventEx01{}, func(ctx context.Context, uow *uow.UnitOfWork, event EventHandler) error {
-		log.Println("---> Mock: Event Handler")
-		log.Println("---> Mock: Event Handler Done")
+		log.Println("--> Mock: Event Handler")
+		log.Println("--> Mock: Event Handler Done")
 		return errors.New("Mock: Error")
 	})
 
@@ -298,10 +298,10 @@ func TestBus_SendEventAsync(t *testing.T) {
 
 	err := <-ch
 	if err == nil {
-		t.Error("---> The event handler should return an error")
+		t.Error("--> The event handler should return an error")
 	}
 	if err.Error() != "Mock: Error" {
-		t.Error("---> The event handler should return the error message")
+		t.Error("--> The event handler should return the error message")
 	}
 }
 
