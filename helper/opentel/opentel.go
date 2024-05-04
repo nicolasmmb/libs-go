@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	oteltrace "go.opentelemetry.io/otel/sdk/trace"
@@ -79,7 +80,7 @@ func NewTraceConfig(tracerName, endpoint, schemaURL, serviceName, serviceVersion
 	return cfg
 }
 
-func InitTracer(cfg TraceConfig) error {
+func InitTracer(cfg TraceConfig) (error, *otlptrace.Exporter) {
 
 	// Create a new OTLP trace exporter
 	exporter, err := otlptracehttp.New(
@@ -98,15 +99,8 @@ func InitTracer(cfg TraceConfig) error {
 
 	// Handle any errors
 	if err != nil {
-		return err
+		return err, nil
 	}
-
-	// Close the exporter on shutdown
-	defer func() {
-		if err := exporter.Shutdown(context.Background()); err != nil {
-			log.Fatal(err)
-		}
-	}()
 
 	// Create and configure a new resource
 	resource, err := resource.Merge(
@@ -122,7 +116,7 @@ func InitTracer(cfg TraceConfig) error {
 
 	// Handle any errors
 	if err != nil {
-		return err
+		return err, nil
 	}
 
 	// Create a new OTLP trace provider
@@ -140,7 +134,7 @@ func InitTracer(cfg TraceConfig) error {
 		log.Println("--> OpenTelemetry Tracer initialized")
 	})
 
-	return nil
+	return nil, exporter
 }
 
 func GetTracer() trace.Tracer {
