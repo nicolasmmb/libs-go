@@ -265,6 +265,18 @@ func TestBus_CountEventHandlers(t *testing.T) {
 	}
 }
 
+func TestBus_RegisterEventHandlerWithTwoHandlers(t *testing.T) {
+	localBus := createBaseBusMock()
+
+	localBus.RegisterEventHandler(eventEx01{}, baseEventHandler01)
+	localBus.RegisterEventHandler(eventEx01{}, baseEventHandler02)
+
+	total := len(localBus.events["eventEx01"])
+	if total != 2 {
+		t.Error("--> The number of event handlers should be 2")
+	}
+}
+
 func TestBus_SendEventToNonExistingHandler(t *testing.T) {
 	localBus := createBaseBusMock()
 	localBus.RemoveEventHandler(eventEx02{})
@@ -302,6 +314,24 @@ func TestBus_SendEventAsync(t *testing.T) {
 	}
 	if err.Error() != "Mock: Error" {
 		t.Error("--> The event handler should return the error message")
+	}
+}
+
+func TestBus_SendEventAsyncWithNilChannel(t *testing.T) {
+	localBus := createBaseBusMock()
+	localBus.RegisterEventHandler(eventEx01{}, baseEventHandler01)
+
+	localBus.SendEventAsync(nil, context.Background(), eventEx01{}, nil)
+}
+
+func TestBus_GetGlobalBus(t *testing.T) {
+	bus := GetGlobal()
+	if bus == nil {
+		t.Error("--> Bus is nil")
+	}
+	bus = GetGlobal()
+	if bus == nil {
+		t.Error("--> Bus is nil")
 	}
 }
 

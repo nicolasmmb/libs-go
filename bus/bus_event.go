@@ -46,7 +46,7 @@ func (b *bus) SendEvent(ctx context.Context, event EventHandler, uow *uow.UnitOf
 
 func (b *bus) SendEventAsync(ch chan error, ctx context.Context, event EventHandler, uow *uow.UnitOfWork) {
 	if ch == nil {
-		ch = make(chan error)
+		go b.SendEvent(ctx, event, uow)
 	}
 	go func() { ch <- b.SendEvent(ctx, event, uow) }()
 }

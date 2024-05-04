@@ -55,11 +55,11 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/niko-labs/libs-go/bus/bus_base.go (87.5%)</option>
+				<option value="file0">github.com/niko-labs/libs-go/bus/bus_base.go (100.0%)</option>
 				
 				<option value="file1">github.com/niko-labs/libs-go/bus/bus_command.go (100.0%)</option>
 				
-				<option value="file2">github.com/niko-labs/libs-go/bus/bus_event.go (92.0%)</option>
+				<option value="file2">github.com/niko-labs/libs-go/bus/bus_event.go (100.0%)</option>
 				
 				<option value="file3">github.com/niko-labs/libs-go/helper/envs.go (0.0%)</option>
 				
@@ -109,7 +109,7 @@ type bus struct {
 }
 
 func GetGlobal() *bus <span class="cov8" title="1">{
-        if globalBusInstance != nil </span><span class="cov0" title="0">{
+        if globalBusInstance != nil </span><span class="cov8" title="1">{
                 return globalBusInstance
         }</span> else<span class="cov8" title="1"> {
                 globalBusInstance = createBase()
@@ -187,7 +187,7 @@ func (b *bus) RegisterEventHandler(event EventHandler, handler EventHandlerFunc)
                                 return ErrorEventHandlerAlreadyRegistered
                         }</span>
                 }
-                <span class="cov0" title="0">b.events[eName] = append(handlers, handler)</span>
+                <span class="cov8" title="1">b.events[eName] = append(handlers, handler)</span>
         } else<span class="cov8" title="1"> {
                 b.events[eName] = []EventHandlerFunc{handler}
         }</span>
@@ -217,8 +217,8 @@ func (b *bus) SendEvent(ctx context.Context, event EventHandler, uow *uow.UnitOf
 }
 
 func (b *bus) SendEventAsync(ch chan error, ctx context.Context, event EventHandler, uow *uow.UnitOfWork) <span class="cov8" title="1">{
-        if ch == nil </span><span class="cov0" title="0">{
-                ch = make(chan error)
+        if ch == nil </span><span class="cov8" title="1">{
+                go b.SendEvent(ctx, event, uow)
         }</span>
         <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{ ch &lt;- b.SendEvent(ctx, event, uow) }</span>()
 }
