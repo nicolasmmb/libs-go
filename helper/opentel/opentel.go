@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	tracer *trace.Tracer
+	tracer trace.Tracer
 	once   sync.Once
 )
 
@@ -136,14 +136,14 @@ func InitTracer(cfg TraceConfig) error {
 	once.Do(func() {
 		otel.SetTracerProvider(tracerProvider)
 		trace := tracerProvider.Tracer("")
-		tracer = &trace
+		tracer = trace
 		log.Println("--> OpenTelemetry Tracer initialized")
 	})
 
 	return nil
 }
 
-func GetTracer() *trace.Tracer {
+func GetTracer() trace.Tracer {
 	if tracer != nil {
 		return tracer
 	} else {
