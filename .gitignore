@@ -4,3 +4,5 @@ main.go
 main.py
 trace.out
 .env
+.docs/coverage.html
+.docs/coverage.out
