@@ -1,6 +1,8 @@
 package uow
 
 import (
+	"context"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -19,8 +21,11 @@ func (u *UnitOfWork) GetTracer() *trace.Tracer {
 	return u.tracer
 }
 
-func NewUnitOfWorkWithOptions(opts ...UowOption) *UnitOfWork {
-	u := &UnitOfWork{}
+func NewUnitOfWorkWithOptions(cnx *pgxpool.Pool, opts ...UowOption) *UnitOfWork {
+	u := &UnitOfWork{
+		connection: cnx,
+		Ctx:        context.Background(),
+	}
 	for _, opt := range opts {
 		opt(u)
 	}
@@ -34,8 +39,10 @@ func (u *UnitOfWork) SetSchema(schema string) error {
 	if u.schema != nil {
 		return ErrorSchemaAlreadySet
 	}
+
 	u.schema = &schema
-	return nil
+	err := u.setSearchPath()
+	return err
 }
 
 func (u *UnitOfWork) GetSchema() *string {
@@ -97,4 +104,12 @@ func (u *UnitOfWork) hasTransaction() bool {
 
 func (u *UnitOfWork) hasSchema() bool {
 	return u.schema != nil
+}
+
+func (u *UnitOfWork) setSearchPath() error {
+	// ctx from ctx
+	ctx := context.WithValue(u.Ctx, "schema", *u.schema)
+	SQL_SET_SCHEMA := "SET search_path TO '" + *u.schema + "';"
+	_, err := u.connection.Exec(ctx, SQL_SET_SCHEMA)
+	return err
 }

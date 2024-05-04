@@ -20,7 +20,7 @@ func WithSchema(schema string) UowOption {
 }
 func WithContext(ctx context.Context) UowOption {
 	return func(c *UnitOfWork) {
-		c.Ctx = ctx
+		c.Ctx = context.WithValue(ctx, SchemaId{}, c.GetSchema())
 	}
 }
 func WithConnection(cnx *pgxpool.Pool) UowOption {

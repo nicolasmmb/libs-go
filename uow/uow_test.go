@@ -63,12 +63,12 @@ func startDatabase(name string) (*pgxpool.Pool, testcontainers.Container) {
 }
 
 func TestUnitOfWork_NewUnitOfWork(t *testing.T) {
-	uow := NewUnitOfWorkWithOptions(WithConnection(&pgxpool.Pool{}))
+	uow := NewUnitOfWorkWithOptions(&pgxpool.Pool{})
 	assert.NotNil(t, uow)
 }
 
 func TestUnitOfWork_Option_WithConnection(t *testing.T) {
-	uow := NewUnitOfWorkWithOptions(WithConnection(&pgxpool.Pool{}))
+	uow := NewUnitOfWorkWithOptions(&pgxpool.Pool{})
 	assert.NotNil(t, uow.connection)
 }
 
@@ -76,7 +76,7 @@ func TestUnitOfWork_Option_UsingRealDB(t *testing.T) {
 	db, container := startDatabase(t.Name())
 	defer container.Terminate(context.Background())
 
-	uow := NewUnitOfWorkWithOptions(WithConnection(db), WithSchema("asuka"), WithContext(context.Background()))
+	uow := NewUnitOfWorkWithOptions(db, WithSchema("asuka"), WithContext(context.Background()))
 	assert.Equal(t, "asuka", *uow.schema)
 	assert.NotNil(t, uow)
 	assert.NotNil(t, uow.Ctx)
@@ -84,21 +84,28 @@ func TestUnitOfWork_Option_UsingRealDB(t *testing.T) {
 }
 
 func TestUnitOfWork_SetSchema(t *testing.T) {
-	uow := NewUnitOfWorkWithOptions(WithConnection(&pgxpool.Pool{}), WithSchema("potato"), WithContext(context.Background()))
+	db, container := startDatabase(t.Name())
+	defer container.Terminate(context.Background())
+	uow := NewUnitOfWorkWithOptions(db, WithSchema("potato"), WithContext(context.Background()))
 	assert.NotNil(t, uow)
 	assert.NotNil(t, uow.Ctx)
 	assert.Equal(t, "potato", *uow.GetSchema())
 }
 
 func TestUnitOfWork_SetInvalidSchema(t *testing.T) {
-	uow := NewUnitOfWorkWithOptions()
+	db, container := startDatabase(t.Name())
+	defer container.Terminate(context.Background())
+
+	uow := NewUnitOfWorkWithOptions(db)
 	err := uow.SetSchema("")
 	assert.NotNil(t, err)
 	assert.Equal(t, ErrorSchemaCannotBeEmpty, err)
 }
 
 func TestUnitOfWork_SetSchemaTwice(t *testing.T) {
-	uow := NewUnitOfWorkWithOptions(WithSchema("potato"), WithSchema("tomato"))
+	db, container := startDatabase(t.Name())
+	defer container.Terminate(context.Background())
+	uow := NewUnitOfWorkWithOptions(db, WithSchema("potato"))
 	assert.Equal(t, "potato", *uow.GetSchema())
 
 	err := uow.SetSchema("tomato")
@@ -107,13 +114,15 @@ func TestUnitOfWork_SetSchemaTwice(t *testing.T) {
 }
 
 func TestUnitOfWork_GetSchema(t *testing.T) {
-	uow := NewUnitOfWorkWithOptions(WithConnection(&pgxpool.Pool{}), WithSchema("potato"), WithContext(context.Background()))
+	db, container := startDatabase(t.Name())
+	defer container.Terminate(context.Background())
+	uow := NewUnitOfWorkWithOptions(db, WithSchema("potato"), WithContext(context.Background()))
 	assert.Equal(t, "potato", *uow.GetSchema())
 }
 
 func TestUnitOfWork_GetConnection(t *testing.T) {
 	db := &pgxpool.Pool{}
-	uow := NewUnitOfWorkWithOptions(WithConnection(db))
+	uow := NewUnitOfWorkWithOptions(db)
 	assert.NotNil(t, uow.GetConnection())
 }
 
@@ -121,7 +130,7 @@ func TestUnitOfWork_Begin(t *testing.T) {
 	db, container := startDatabase(t.Name())
 	defer container.Terminate(context.Background())
 
-	uow := NewUnitOfWorkWithOptions(WithConnection(db), WithSchema("public"), WithContext(context.Background()))
+	uow := NewUnitOfWorkWithOptions(db, WithSchema("public"), WithContext(context.Background()))
 	err := uow.Begin()
 	assert.Nil(t, err)
 	assert.NotNil(t, uow.transaction)
@@ -131,7 +140,7 @@ func TestUnitOfWork_Commit(t *testing.T) {
 	db, container := startDatabase(t.Name())
 	defer container.Terminate(context.Background())
 
-	uow := NewUnitOfWorkWithOptions(WithConnection(db), WithSchema("public"), WithContext(context.Background()))
+	uow := NewUnitOfWorkWithOptions(db, WithSchema("public"), WithContext(context.Background()))
 	err := uow.Begin()
 	assert.Nil(t, err)
 	assert.NotNil(t, uow.transaction)
@@ -142,7 +151,7 @@ func TestUnitOfWork_Rollback(t *testing.T) {
 	db, container := startDatabase(t.Name())
 	defer container.Terminate(context.Background())
 
-	uow := NewUnitOfWorkWithOptions(WithConnection(db), WithSchema("public"), WithContext(context.Background()))
+	uow := NewUnitOfWorkWithOptions(db, WithSchema("public"), WithContext(context.Background()))
 	err := uow.Begin()
 	assert.Nil(t, err)
 	assert.NotNil(t, uow.transaction)
@@ -153,7 +162,7 @@ func TestUnitOfWork_DoubleBegin(t *testing.T) {
 	db, container := startDatabase(t.Name())
 	defer container.Terminate(context.Background())
 
-	uow := NewUnitOfWorkWithOptions(WithConnection(db), WithSchema("public"), WithContext(context.Background()))
+	uow := NewUnitOfWorkWithOptions(db, WithSchema("public"), WithContext(context.Background()))
 	err := uow.Begin()
 	assert.Nil(t, err)
 	assert.NotNil(t, uow.transaction)
@@ -168,7 +177,7 @@ func TestUnitOfWork_DoubleCommit(t *testing.T) {
 	db, container := startDatabase(t.Name())
 	defer container.Terminate(context.Background())
 
-	uow := NewUnitOfWorkWithOptions(WithConnection(db), WithSchema("public"), WithContext(context.Background()))
+	uow := NewUnitOfWorkWithOptions(db, WithSchema("public"), WithContext(context.Background()))
 	err := uow.Begin()
 	assert.Nil(t, err)
 	assert.NotNil(t, uow.transaction)
@@ -187,7 +196,7 @@ func TestUnitOfWork_DoubleRollback(t *testing.T) {
 	db, container := startDatabase(t.Name())
 	defer container.Terminate(context.Background())
 
-	uow := NewUnitOfWorkWithOptions(WithConnection(db), WithSchema("public"), WithContext(context.Background()))
+	uow := NewUnitOfWorkWithOptions(db, WithSchema("public"), WithContext(context.Background()))
 	err := uow.Begin()
 	assert.Nil(t, err)
 	assert.NotNil(t, uow.transaction)
@@ -206,7 +215,7 @@ func TestUnitOfWork_BeginNoSchema(t *testing.T) {
 	db, container := startDatabase(t.Name())
 	defer container.Terminate(context.Background())
 
-	uow := NewUnitOfWorkWithOptions(WithConnection(db), WithSchema("public"), WithContext(context.Background()))
+	uow := NewUnitOfWorkWithOptions(db, WithSchema("public"), WithContext(context.Background()))
 	uow.schema = nil
 	err := uow.Begin()
 	assert.NotNil(t, err)
@@ -214,13 +223,12 @@ func TestUnitOfWork_BeginNoSchema(t *testing.T) {
 
 }
 
-// set tracer
 func TestUnitOfWork_Option_WithTracer(t *testing.T) {
 	tracerProvider := trace.NewTracerProvider(
 		trace.WithSampler(trace.AlwaysSample()),
 	)
 	tracer := tracerProvider.Tracer("X")
-	uow := NewUnitOfWorkWithOptions(WithTracer(&tracer))
+	uow := NewUnitOfWorkWithOptions(&pgxpool.Pool{}, WithTracer(&tracer))
 	assert.NotNil(t, uow.tracer)
 	assert.NotNil(t, uow.GetTracer())
 	assert.Equal(t, tracer, *uow.GetTracer())
@@ -228,6 +236,6 @@ func TestUnitOfWork_Option_WithTracer(t *testing.T) {
 
 func BenchmarkUnitOfWork_Option_WithConnection(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		NewUnitOfWorkWithOptions(WithConnection(&pgxpool.Pool{}))
+		NewUnitOfWorkWithOptions(&pgxpool.Pool{})
 	}
 }

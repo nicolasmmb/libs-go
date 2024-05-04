@@ -65,7 +65,7 @@ func TestRepositoryExample_FindOne(t *testing.T) {
 
 func TestNewRepositoryFromUoW(t *testing.T) {
 	db := &pgxpool.Pool{}
-	unitOfWork := uow.NewUnitOfWorkWithOptions(uow.WithConnection(db))
+	unitOfWork := uow.NewUnitOfWorkWithOptions(db)
 	repo := NewRepositoryFromUoW(unitOfWork, &RepositoryExample{})
 	itens, err := repo.Queries.FindOne()
 	assert.Nil(t, itens)
