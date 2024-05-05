@@ -7,9 +7,11 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func AddTraceIdHeader(ctx *gin.Context) {
-	ctx.Header("X-Trace-ID", GetTraceID(ctx.Request.Context()))
-	ctx.Next()
+func AddTraceIdHeader() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.Header("X-Trace-ID", GetTraceID(ctx.Request.Context()))
+		ctx.Next()
+	}
 }
 func GetTraceID(ctx context.Context) string {
 	spanCtx := trace.SpanContextFromContext(ctx)
