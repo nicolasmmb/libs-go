@@ -7,7 +7,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func WithTracer(tracer *trace.Tracer) UowOption {
+func WithTracer(tracer trace.Tracer) UowOption {
 	return func(c *UnitOfWork) {
 		c.tracer = tracer
 	}

@@ -17,7 +17,7 @@ type UnitOfWorkInterface interface {
 	Rollback() error
 }
 
-func (u *UnitOfWork) GetTracer() *trace.Tracer {
+func (u *UnitOfWork) GetTracer() trace.Tracer {
 	return u.tracer
 }
 

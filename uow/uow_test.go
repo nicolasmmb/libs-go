@@ -228,10 +228,10 @@ func TestUnitOfWork_Option_WithTracer(t *testing.T) {
 		trace.WithSampler(trace.AlwaysSample()),
 	)
 	tracer := tracerProvider.Tracer("X")
-	uow := NewUnitOfWorkWithOptions(&pgxpool.Pool{}, WithTracer(&tracer))
+	uow := NewUnitOfWorkWithOptions(&pgxpool.Pool{}, WithTracer(tracer))
 	assert.NotNil(t, uow.tracer)
 	assert.NotNil(t, uow.GetTracer())
-	assert.Equal(t, tracer, *uow.GetTracer())
+	assert.Equal(t, tracer, uow.GetTracer())
 }
 
 func BenchmarkUnitOfWork_Option_WithConnection(b *testing.B) {

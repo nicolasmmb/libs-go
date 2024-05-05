@@ -17,7 +17,7 @@ type UnitOfWork struct {
 	Ctx        context.Context
 	schema     *string
 	connection *pgxpool.Pool
-	tracer     *trace.Tracer
+	tracer     trace.Tracer
 
 	// transaction
 	transaction pgx.Tx
